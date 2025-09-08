@@ -16,7 +16,23 @@ connectDB();
 const app = express();
 
 //creating middle wares
-app.use(cors())               //allows cross-origin request
+const allowedOrigins = [
+  "http://localhost:3000", // for local frontend
+  "https://spend-wise-frontend-client.vercel.app" // your Vercel frontend
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error("CORS policy violation"), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
 app.use(express.json())     //parse json bodies
 
 
