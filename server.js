@@ -17,18 +17,22 @@ const app = express();
 
 //creating middle wares
 const allowedOrigins = [
-  "http://localhost:3000", // for local frontend
-  "https://spend-wise-frontend-client.vercel.app" // your Vercel frontend
+  "http://localhost:3000", // local frontend
+  "http://localhost:5173", // vite dev server
+  "https://spend-wise-frontend-client.vercel.app", // production vercel
+  /\.vercel\.app$/ // allow all vercel preview URLs
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error("CORS policy violation"), false);
+    if (!origin) return callback(null, true); // allow requests without origin
+    if (
+      allowedOrigins.includes(origin) ||
+      (typeof origin === "string" && /\.vercel\.app$/.test(origin))
+    ) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    return callback(new Error("CORS policy violation"), false);
   },
   credentials: true
 }));
