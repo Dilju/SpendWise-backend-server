@@ -95,7 +95,7 @@ export const getLoggedInUser = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
     try{
-        const {name, email, monthlyIncome} = req.body
+        const {name, monthlyIncome} = req.body
         const user = await User.findById(req.user.id)
         if(!user){
             return res.status(404).json({message: "User not found"})
@@ -103,7 +103,6 @@ export const updateUserProfile = async (req, res) => {
 
         // update only if provided
         if (name) user.name = name
-        if (email) user.email = email
         if (monthlyIncome) user.monthlyIncome = monthlyIncome
 
         await user.save()
