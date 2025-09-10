@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import User from "../models/User.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -117,6 +118,75 @@ export const updateUserProfile = async (req, res) => {
             }
         })
     } catch(error){
+        res.status(500).json({message: "Server error", error})
+    }
+}
+
+// forgot password (Generate reset token)
+export const forgotPassword = async(req, res) => {
+    try{
+        const {email} = req.body
+        const user = await User.findOne({email})
+
+        if(!user){
+            return res.status(404).json({message: "User not found with this email"})
+        }
+
+        // Generate token
+        const resetToken = crypto.randomBytes(32).toString("hex")
+
+        // hash and save to DB
+        const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+
+        user.resetPasswordToken = hashedToken
+        user.resetPasswordExpire = Date.now() + 15 * 60 * 1000 //15mins
+        await user.save()
+
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+
+        // todo: send resetUrl via email service (nodemailer)
+        res.json({
+            message: "Password Reset Link genrated",
+            resetUrl
+        })
+    }
+    catch(error){
+        res.status(500).json({message: "Server Error", error})
+    }
+}
+
+
+// Reset password
+export const resetPassword = async(req, res) => {
+    try{
+        const {token} = req.params
+        const {password} = req.body
+
+        // hash incoming token and match with DB
+        const hashedToken = crypto.createHash("sha256").update(token).digest("hex")
+
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpire: {$gt:Date.now()}
+        })
+
+        if(!user){
+            return res.status(404).json({message: "Invalid or expired token"})
+        }
+
+        // hash new password
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        // save new password and clear reset fields
+        user.password = hashedPassword
+        user.resetPasswordToken = undefined
+        user.resetPasswordExpire = undefined
+
+        await user.save()
+
+        res.json({message: "Password reset successfull. You can log in now."})
+    }
+    catch(error){
         res.status(500).json({message: "Server error", error})
     }
 }
