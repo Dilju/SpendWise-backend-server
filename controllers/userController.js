@@ -166,7 +166,7 @@ export const forgotPassword = async(req, res) => {
             html: `
                 <p>Hello ${user.name || "User"},</p>
                 <p>You requested to reset your password. Click the link below:</p>
-                <a href="${resetUrl} target="_blank">Reset Password</a>
+                <a href="${resetUrl}" target="_blank">Reset Password</a>
                 <p>This link will expire in 15 minutes.</p>
             `,
         } 
