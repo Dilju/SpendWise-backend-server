@@ -13,7 +13,7 @@ export const addExpense = async (req, res) => {
             userId: req.user.id     //come from JWT middlewares
         })
         await expense.save()
-        res.status(201).json({message: "Expense added successfully", expenseId: expense._id})
+        res.status(201).json({message: "Expense added successfully", expense})
     }
     catch(error){
         res.status(500).json({message: "Server error", error: error.message})
@@ -40,7 +40,7 @@ export const updateExpense =  async(req, res) => {
         if(!updated){
             return res.status(404).json({message: "Expense not found"})
         }
-        res.json({message: "Expense updated successfully"})
+        res.json({message: "Expense updated successfully", expense: updated})
     }
     catch(error){
         res.status(500).json({message: "Server error", error: error.message})

@@ -176,7 +176,7 @@ export const forgotPassword = async(req, res) => {
 
         // todo: send resetUrl via email service (nodemailer)
         res.json({
-            message: "Password Reset link sent to your email",
+            message: "Password Reset link sent to your entered email",
         })
     }
     catch(error){
