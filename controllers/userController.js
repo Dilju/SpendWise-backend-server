@@ -132,7 +132,7 @@ export const forgotPassword = async(req, res) => {
             return res.status(404).json({message: "User not found with this email"})
         }
 
-        // Generate token
+        // Generate reset token
         const resetToken = crypto.randomBytes(32).toString("hex")
 
         // hash and save to DB
@@ -142,15 +142,43 @@ export const forgotPassword = async(req, res) => {
         user.resetPasswordExpire = Date.now() + 15 * 60 * 1000 //15mins
         await user.save()
 
+        // reset url (goes to front end reset-url page)
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`
+
+        // nodeMailer transport
+        const transporter = nodemailer.createTransport({
+            host: process.env.EMAIL_HOST,
+            port: process.env.EMAIL_PORT,
+            secure: false,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        })
+
+        //email options
+        const mailOptions = {
+            from: `"SpendWise App" <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: "Password Reset Request",
+            html: `
+                <p>Hello ${user.name || "User"},</p>
+                <p>You requested to reset your password. Click the link below:</p>
+                <a href="${resetUrl} target="_blank">Reset Password</a>
+                <p>This link will expire in 15 minutes.</p>
+            `,
+        } 
+
+        // send email
+        await transporter.sendMail(mailOptions)
 
         // todo: send resetUrl via email service (nodemailer)
         res.json({
-            message: "Password Reset Link genrated",
-            resetUrl
+            message: "Password Reset link sent to your email",
         })
     }
     catch(error){
+        console.error(error);
         res.status(500).json({message: "Server Error", error})
     }
 }
