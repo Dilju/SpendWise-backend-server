@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import User from "../models/User.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import nodemailer from 'nodemailer'
 
 export const registerUser = async (req, res) => {
     try{
